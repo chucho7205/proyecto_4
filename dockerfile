@@ -1,0 +1,34 @@
+#construir la imagen del servicio
+
+#la imagen base
+FROM python:3.12-slim
+
+#la carpeta donde va a vivir dentro del contenedor
+WORKDIR /servicio
+
+#que los mensajes salgan inmediatamente
+ENV PYTHONDONTWRITEBYTECODE=1 \ 
+    PYTHONUNBUFFERED=1
+
+
+RUN apt-get update && apt-get install -y --no-install-recommends \ 
+    libgomp1 \ 
+    && rm -rf /var/lib/apt/lists/*
+
+    
+#copia solo requirements.txt para instalar dependencias
+COPY requirements.txt .
+
+#instalamos las librerias necesarias
+RUN pip install --no-cache-dir -r requirements.txt
+
+#copia todo el contenido del proyecto al contenedor
+COPY . .
+
+#documentacion del puerto
+
+EXPOSE 8080
+
+#correr el despliegue del servicio
+
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8080}"]
